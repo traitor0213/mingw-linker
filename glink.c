@@ -1,5 +1,7 @@
 #undef UNICODE
 
+#include "FindFile.h"
+
 #include <windows.h>
 #include <stdlib.h>
 
@@ -11,7 +13,7 @@ int main(int argc, char **argv)
     //get program full path
     char ProgramPath[1024];
     if (GetModuleFileName(NULL, ProgramPath, (DWORD)sizeof(ProgramPath)) == FALSE)
-    {   
+    {
         //get program full path fails, return 0;
         return 0;
     }
@@ -34,7 +36,7 @@ int main(int argc, char **argv)
 
     //check BOF
     if (lstrlen(ProgramPath) + sizeof(InitializeFileName) <= sizeof(ProgramPath))
-    {   
+    {
         //BOF safe
         memcpy(ProgramPath + LastSlash, InitializeFileName, sizeof(InitializeFileName));
 
@@ -52,7 +54,7 @@ int main(int argc, char **argv)
         int ReadIndex = 0;
 
         for (;; ReadIndex++)
-        {   
+        {
             //read to one byte from setting.ini
 
             //ReadFile API fails, FileReadError variable holds TRUE
@@ -72,7 +74,6 @@ int main(int argc, char **argv)
         //close file handle
         CloseHandle(InitializeFileHandle);
 
-
         //is not FileReadError holds TRUE
         if (FileReadError == FALSE)
         {
@@ -88,16 +89,35 @@ int main(int argc, char **argv)
             {
                 char *ptr = GetCommandLineA();
                 ptr = strchr(ptr, ' ');
-                ptr ++;
-                
-                wsprintf(CmdLine, "%s%s", CmdLine, ptr);
 
+                if(ptr == NULL)
+                {
+                    return 0;
+                }
+
+                ptr++;
+
+                if (IsFileExist(MingWPath) == TRUE)
+                {
+                    //if setting path is exist
+                    wsprintf(CmdLine, "%s%s", CmdLine, ptr);
+                }
+                else
+                {
+                    //if setting path is not exist
+                    char FullFilePath[MAX_PATH];
+                    RecursiveFindFile("C:", "gcc.exe", FullFilePath, sizeof(FullFilePath));
+                    
+                    wsprintf(CmdLine, "%s%s", FullFilePath, ptr);
+                }
+
+                //start gcc
                 system(CmdLine);
             }
-            else 
+            else
             {
                 //argc == 1
-                
+
                 return 0;
             }
         }

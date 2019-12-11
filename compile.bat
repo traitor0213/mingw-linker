@@ -1,0 +1,1 @@
+gcc glink.c -o glink.exe -static-libgcc
